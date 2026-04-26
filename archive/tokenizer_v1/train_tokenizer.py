@@ -3,7 +3,7 @@
 import argparse
 from pathlib import Path
 import sys
-from tokenizer import CharTokenizer, BpeTokenizer
+from archive.tokenizer_v1 import CharTokenizer, BpeTokenizer
 
 # from datasets import load_dataset
 # DATASET = "aeirya/lct-mt"

@@ -121,6 +121,7 @@ def main():
 
     # Char-only
     p.add_argument('--add-latin', action="store_true")
+    p.add_argument('--add-arabic', action="store_true")
     # BPE-only
     p.add_argument("--limit-alphabet", type=int, default=500)
 
@@ -131,10 +132,11 @@ def main():
     out = args.out or 'tokenizers/{type}/{name}'.format(type='char' if args.char else 'bpe' if args.bpe else '', name=args.name)
 
     if args.char:
+        alphabet = []
         if args.add_latin:
-            alphabet = list('abcdefghijklmnopqrstuvwxyz1234567890.,?!()\'-_')
-        else:
-            alphabet = []
+            alphabet += list('abcdefghijklmnopqrstuvwxyz1234567890.,?!()\'-_')
+        if args.add_arabic:
+            alphabet += list('.،ابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهیًٌٍَُِْ۱۲۳۴۵۶۷۸۹۰-«»ةآأإيئؤكکٰك‌‌ٔء')
 
         tok = train_char(texts, min_freq=args.min_freq, vocab_size=args.vocab_size, std_chars=alphabet)
     else:

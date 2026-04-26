@@ -1,6 +1,38 @@
 import gdown
 from gdown.exceptions import FileURLRetrievalError
 from pathlib import Path
+import subprocess
+
+
+def gdown_download_folder(folder_id, out, lang, failed):
+    url = f"https://drive.google.com/drive/folders/{folder_id}"
+
+    try:
+        files = gdown.download_folder(
+            url=url,
+            output=str(out),
+            quiet=False,
+            resume=True,
+            skip_download=False,
+        )
+        return files
+    
+    except FileURLRetrievalError as e:
+        print(f"SKIPPED blocked folder/file in {lang}")
+        failed.append((lang, folder_id, str(e)))
+    except Exception as e:
+        print(f"FAILED {lang}: {e}")
+        failed.append((lang, folder_id, str(e)))
+    
+    return failed
+
+
+def rclone_download_folder(folder_id, out):
+    SCRIPT = str(Path("./download_drive_folder.sh").resolve())
+    return subprocess.run(
+        [str(SCRIPT), folder_id, str(out)],
+        check=True,
+    )
 
 
 OTHER_FOLDERS = {
@@ -26,33 +58,20 @@ HI_RES = {
 }
 FOLDERS = HI_RES
 
-OUT_DIR = Path("corpus/high_resource")
+OUT_DIR = Path("./corpus/high_resource")
 OUT_DIR.mkdir(exist_ok=True)
 
 failed = []
 
-for lang, folder_id in FOLDERS.items():
-    url = f"https://drive.google.com/drive/folders/{folder_id}"
-    out = OUT_DIR / lang
+for lang_pair, folder_id in FOLDERS.items():
+    out = OUT_DIR / lang_pair
     out.mkdir(exist_ok=True)
-
-    try:
-        gdown.download_folder(
-            url=url,
-            output=str(out),
-            quiet=False,
-            resume=True,
-            skip_download=False,
-        )
-    except FileURLRetrievalError as e:
-        print(f"SKIPPED blocked folder/file in {lang}")
-        failed.append((lang, folder_id, str(e)))
-    except Exception as e:
-        print(f"FAILED {lang}: {e}")
-        failed.append((lang, folder_id, str(e)))
+    
+    rclone_download_folder(folder_id, out)
 
 
 print("\nDone.")
-print("Failed folders:")
-for lang, folder_id, err in failed:
-    print(f"{lang}: {folder_id}")
+if len(failed) > 0:
+    print("Failed folders:")
+for lang_pair, folder_id, err in failed:
+    print(f"{lang_pair}: {folder_id}")

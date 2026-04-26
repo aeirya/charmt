@@ -10,16 +10,17 @@ from tokenizers.normalizers import NFC
 from tokenizers.decoders import WordPiece
 from transformers import PreTrainedTokenizerFast
 from tokenizers.processors import TemplateProcessing
+import unicodedata
 
 
 SPECIAL = ["<pad>", "<bos>", "<eos>", "<unk>"]
-
 
 def iter_stdin():
     for line in sys.stdin:
         text = line.strip()
         if text:
             yield text
+
 
 def drop_none(kwargs):
     return {k: v for k, v in kwargs.items() if v is not None}
@@ -40,7 +41,15 @@ def add_post_processor(tok):
     )
 
 
-def train_char(texts, min_freq=None, vocab_size=None, std_chars:list=None, model_max_length=2048):
+def filter_char_vocab(tok: PreTrainedTokenizerFast, std_chars: list, new_vocab_size: int):
+    good_char = lambda ch: unicodedata.category(ch).startswith(("L", "M"))
+    chars = set(tok.get_vocab()) - set(SPECIAL)
+    filtered = [c for c in chars if good_char(c)]
+    new_vocab = sorted(set(std_chars + filtered))
+    return tok.train_new_from_iterator(new_vocab, new_vocab_size)
+
+
+def train_char(texts, min_freq=None, vocab_size=None, std_chars:list=[], model_max_length=2048):
     tok = Tokenizer(WordLevel(unk_token="<unk>"))
     tok.normalizer = NFC()
     tok.pre_tokenizer = Split(pattern="", behavior="isolated")
@@ -48,18 +57,14 @@ def train_char(texts, min_freq=None, vocab_size=None, std_chars:list=None, model
     trainer = WordLevelTrainer(
         special_tokens=SPECIAL,
         **drop_none({
-            'vocab_size': vocab_size,
+            'vocab_size': vocab_size * 4,
             'min_frequency': min_freq,
         })
     )
     tok.train_from_iterator(texts, trainer=trainer)
-    
-    if std_chars:
-        tok.add_tokens(std_chars)
-
     add_post_processor(tok)
-    
-    return PreTrainedTokenizerFast(
+        
+    pttok = PreTrainedTokenizerFast(
         tokenizer_object=tok,
         pad_token="<pad>",
         bos_token="<bos>",
@@ -67,6 +72,8 @@ def train_char(texts, min_freq=None, vocab_size=None, std_chars:list=None, model
         unk_token="<unk>",
         model_max_length=model_max_length,
     )
+    pttok = filter_char_vocab(pttok, std_chars, vocab_size)
+    return pttok
 
 
 def train_bpe(texts, min_freq=None, vocab_size=None, limit_alphabet=None, model_max_length=128):
@@ -107,13 +114,13 @@ def main():
     group.add_argument("--bpe", action="store_true")
 
     p.add_argument("--out", type=str)
-    p.add_argument("--min-freq", type=int, default=2)
+    p.add_argument("--min-freq", type=int, default=1)
 
     p.add_argument('--name', type=str, default='tokenizer')
     p.add_argument("--vocab-size", type=int)
 
     # Char-only
-    p.add_argument('--latin-vocab', action="store_true")
+    p.add_argument('--add-latin', action="store_true")
     # BPE-only
     p.add_argument("--limit-alphabet", type=int, default=500)
 
@@ -124,10 +131,10 @@ def main():
     out = args.out or 'tokenizers/{type}/{name}'.format(type='char' if args.char else 'bpe' if args.bpe else '', name=args.name)
 
     if args.char:
-        if args.latin_vocab:
+        if args.add_latin:
             alphabet = list('abcdefghijklmnopqrstuvwxyz1234567890.,?!()\'-_')
         else:
-            alphabet = None
+            alphabet = []
 
         tok = train_char(texts, min_freq=args.min_freq, vocab_size=args.vocab_size, std_chars=alphabet)
     else:

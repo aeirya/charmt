@@ -3,6 +3,9 @@ from gdown.exceptions import FileURLRetrievalError
 from pathlib import Path
 import subprocess
 
+OUT_DIR = Path("./corpus/high_resource")
+OUT_DIR.mkdir(exist_ok=True)
+
 
 def gdown_download_folder(folder_id, out, lang, failed):
     url = f"https://drive.google.com/drive/folders/{folder_id}"
@@ -28,7 +31,7 @@ def gdown_download_folder(folder_id, out, lang, failed):
 
 
 def rclone_download_folder(folder_id, out):
-    SCRIPT = str(Path("./download_drive_folder.sh").resolve())
+    SCRIPT = str(Path("./scripts/gdrive/rclone_folder.sh").resolve())
     return subprocess.run(
         [str(SCRIPT), folder_id, str(out)],
         check=True,
@@ -58,8 +61,6 @@ HI_RES = {
 }
 FOLDERS = HI_RES
 
-OUT_DIR = Path("./corpus/high_resource")
-OUT_DIR.mkdir(exist_ok=True)
 
 failed = []
 
@@ -68,7 +69,6 @@ for lang_pair, folder_id in FOLDERS.items():
     out.mkdir(exist_ok=True)
     
     rclone_download_folder(folder_id, out)
-
 
 print("\nDone.")
 if len(failed) > 0:

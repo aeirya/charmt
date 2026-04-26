@@ -108,15 +108,20 @@ class CharTokenizer(CustomTokenizer):
     def __decode__(self, ids):
         return ''.join(self.get_token(i) for i in ids)
 
-    def save(self, path):
+    def save(self, path=None):
         data = {
             "max_len": self.max_len,
             "itoc": self.itoc,
         }
-        Path(path).write_text(
-            json.dumps(data, ensure_ascii=False, indent=2),
-            encoding="utf-8",
-        )
+        text = json.dumps(data, ensure_ascii=False, indent=2)
+        
+        if path:
+            Path(path).write_text(
+                text,
+                encoding="utf-8",
+            )
+        else:
+            return text
 
     @classmethod
     def load(cls, path):
@@ -138,17 +143,26 @@ class BpeTokenizer(CustomTokenizer):
     def __decode__(self, ids):
         return self.tok.decode(ids)
 
-    def save(self, path):
+    def save(self, path=None):
         tok_path = 'bpe_tokenizer'
         data = {
-            "max_len": self.max_len,
-            "tok_path": tok_path,
+            "max_len": self.max_len
         }
-        Path(path).write_text(
-            json.dumps(data, ensure_ascii=False, indent=2),
-            encoding="utf-8",
-        )
-        self.tok.save(str(tok_path))
+        if path is None:
+            data['bpe'] = self.tok.to_str(True)
+        else:
+            data['tok_path'] = tok_path
+        
+        text = json.dumps(data, ensure_ascii=False, indent=2)
+
+        if path is None:
+            return text
+        else:
+            self.tok.save(str(tok_path))
+            Path(path).write_text(
+                text,
+                encoding="utf-8",
+            )
 
     @classmethod
     def load(cls, path):

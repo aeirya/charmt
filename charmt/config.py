@@ -25,6 +25,14 @@ class TrainConfig:
     n_epoch: int = 100
     limit: int = 1000
     lang: str = 'tur'
+    batch_size: int = 256
+    workers: int = 2
+
+    def get_limit(self):
+        if self.limit and self.limit > 0:
+            return self.limit
+        return None
+    
 
 def load_config(path='config.yaml'):
     with open(path) as f:
@@ -32,9 +40,11 @@ def load_config(path='config.yaml'):
 
     cfg = TrainConfig(
         lr=raw_cfg["lr"],
-        n_epoch=raw_cfg['nepoch'],
+        n_epoch=raw_cfg['n_epoch'],
         lang=raw_cfg['lang'],
         limit=raw_cfg['limit'],
-        model=ModelConfig(**raw_cfg["model"])
+        batch_size=raw_cfg['batch_size'],
+        model=ModelConfig(**raw_cfg["model"]),
+        workers=raw_cfg['workers'],
     )
     return cfg

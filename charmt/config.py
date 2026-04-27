@@ -20,8 +20,9 @@ class ModelConfig:
 
 @dataclass
 class TrainConfig:
-    lr: float
     model: ModelConfig
+    lr: float = 1e-3
+    n_epoch: int = 100
 
 def load_config(path='config.yaml'):
     with open(path) as f:
@@ -29,6 +30,7 @@ def load_config(path='config.yaml'):
 
     cfg = TrainConfig(
         lr=raw_cfg["lr"],
+        n_epoch=raw_cfg['nepoch'],
         model=ModelConfig(**raw_cfg["model"])
     )
     return cfg

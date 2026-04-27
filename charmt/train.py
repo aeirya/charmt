@@ -18,11 +18,11 @@ loader, toks = mtdataloader(
 model = build_model(conf, *toks).to(device)
 
 optim = torch.optim.AdamW(model.parameters(), lr=conf.lr)
-loss_fn = nn.CrossEntropyLoss(ignore_index=toks[1].pad_token_id)
+loss_fn = nn.CrossEntropyLoss(ignore_index=-100)
 
 model.train()
 
-for epoch in range(40):
+for epoch in range(conf.n_epoch):
     total = 0
     for batch, labels in loader:
         batch = {k:v.to(device) for k,v in batch.items()}
@@ -44,3 +44,4 @@ for epoch in range(40):
     if epoch % 10 == 0:
         print(f"epoch {epoch:04d} | loss {total:.4f}")
 
+torch.save(model.state_dict(), "model.pt")

@@ -1,5 +1,11 @@
 lr: 0.003
+nepoch: 100
 
 model:
-  src_max_len: 8
-  tgt_max_len: 4
+  src_max_len: 32
+  tgt_max_len: 8
+  dim: 128
+  dim_feedforward: 512
+  n_encoder_layers: 4
+  n_decoder_layers: 2
+  nhead: 4

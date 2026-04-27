@@ -1,0 +1,34 @@
+from dataclasses import dataclass
+import yaml
+
+@dataclass
+class ModelConfig:
+    src_vocab: int = None
+    tgt_vocab: int = None
+    src_pad_id: int = None
+    tgt_pad_id: int = None
+    
+    dim: int = 64
+    nhead: int = 4
+    n_encoder_layers: int = 2
+    n_decoder_layers: int = 2
+    dim_feedforward: int = 256
+    dropout: float = 0.1
+    src_max_len: int = 512
+    tgt_max_len: int = 128
+
+
+@dataclass
+class TrainConfig:
+    lr: float
+    model: ModelConfig
+
+def load_config(path='config.yaml'):
+    with open(path) as f:
+        raw_cfg = yaml.safe_load(f)
+
+    cfg = TrainConfig(
+        lr=raw_cfg["lr"],
+        model=ModelConfig(**raw_cfg["model"])
+    )
+    return cfg

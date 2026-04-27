@@ -1,0 +1,5 @@
+lr: 0.003
+
+model:
+  src_max_len: 8
+  tgt_max_len: 4

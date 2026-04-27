@@ -9,10 +9,10 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 conf = load_config()
 
 loader, toks = mtdataloader(
-    'tur', 10, 
+    conf.lang, conf.limit, 
     conf.model.src_max_len, 
     conf.model.tgt_max_len, 
-    bs=2, workers=0
+    bs=128, workers=0
     )
 
 model = build_model(conf, *toks).to(device)
@@ -41,7 +41,7 @@ for epoch in range(conf.n_epoch):
 
         total += loss.item()
 
-    if epoch % 10 == 0:
+    if epoch % 1 == 0:
         print(f"epoch {epoch:04d} | loss {total:.4f}")
 
 torch.save(model.state_dict(), "model.pt")

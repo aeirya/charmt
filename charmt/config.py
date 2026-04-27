@@ -23,6 +23,8 @@ class TrainConfig:
     model: ModelConfig
     lr: float = 1e-3
     n_epoch: int = 100
+    limit: int = 1000
+    lang: str = 'tur'
 
 def load_config(path='config.yaml'):
     with open(path) as f:
@@ -31,6 +33,8 @@ def load_config(path='config.yaml'):
     cfg = TrainConfig(
         lr=raw_cfg["lr"],
         n_epoch=raw_cfg['nepoch'],
+        lang=raw_cfg['lang'],
+        limit=raw_cfg['limit'],
         model=ModelConfig(**raw_cfg["model"])
     )
     return cfg

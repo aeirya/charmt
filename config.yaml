@@ -1,11 +1,13 @@
 lr: 0.003
-nepoch: 100
+nepoch: 3
+lang: 'tur'
+limit: 10000
 
 model:
   src_max_len: 32
-  tgt_max_len: 8
-  dim: 128
-  dim_feedforward: 512
-  n_encoder_layers: 4
+  tgt_max_len: 16
+  dim: 64
+  dim_feedforward: 128
+  n_encoder_layers: 2
   n_decoder_layers: 2
-  nhead: 4
+  nhead: 2

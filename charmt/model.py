@@ -52,6 +52,7 @@ class TinySeq2SeqTransformer(nn.Module):
             tgt_key_padding_mask=tgt_pad_mask,
             memory_key_padding_mask=src_pad_mask,
             tgt_mask=self.triu_mask_like(tgt),
+            tgt_is_causal=True,
         )
 
         return self.lm_head(hidden)
